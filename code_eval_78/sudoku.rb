@@ -1,74 +1,66 @@
 require '../support/process_file.rb'
 
 class SudokuChecker
-  attr_reader :line
-
-  def initialize(line)
-    @line=line
-  end
-
-  def data_prepare
-    @size, sudoku_data = line.split(";")
-    @size = @size.to_i
-    @square = Math.sqrt(@size).to_i
+  
+  def initialize(data_line)
+    size, sudoku_data = data_line.split(";")
+    @size = size.to_i
+    @size_root = Math.sqrt(@size).to_i
     @data = sudoku_data.split(",").map(&:to_i)
-    @fields = []
-    rows
-    columns
-    squares
-    @fields.flatten!(1)
   end
-  
-  def rows
-    @rows ||= []
-    @size.times do |n|
-      @rows << @data[@size * n, @size]
+
+  def grid_valid?
+    return "False" unless @data.length == (@size ** 2)
+    fill_fields.each do |field|
+      return "False" unless all_numbers?(field)
     end
-    @fields << @rows
+    "True"
   end
   
-  def columns
-    @columns ||= []
+  private
+
+  def fill_fields
+    fields = []
+    # rows
+    @size.times do |n|
+      fields << @data[@size * n, @size]
+    end
+  
+    # columns
     @size.times do |n|
       column = []
       @size.times do |m|
         column << @data[@size * m + n]
       end
-      @columns << column
+      fields << column
     end
-    @fields << @columns
-  end
   
-  def squares
-    @squares ||= []
-    @square.times do |square_row|
-      @square.times do |square_num|
+    # squares
+    @size_root.times do |square_row|
+      @size_root.times do |square_num|
         square = []
-        @square.times do |row|
-          square << @data[square_index(square_row, square_num, row), @square]
+        @size_root.times do |row|
+          square << @data[index(square_row, square_num, row), @size_root]
         end
-        @squares << square.flatten
+        fields << square.flatten
       end
     end
-    @fields << @squares
+    fields
   end
   
-  def square_index(square_row, square_num, row)
-    square_row * (@size * @square) + square_num * @size + row * @square
-  end
-  
-  def grid_valid?
-    data_prepare
-    @fields.each do |field|
-      unless field.uniq.length == field.length
-        return false
-      end
-    end
-    return true
+  def index(square_row, square_num, row)
+    square_row * (@size * @size_root) + square_num * @size + row * @size_root
   end
 
+  def all_numbers?(field)
+    reference_range = (1..@size).to_a
+    field.each do |value|
+      return false if reference_range.delete(value).nil?
+    end
+    reference_range.empty? ? true : false
+  end
 end
 
 ProcessFile.new do |line|
-  puts SudokuChecker.new(line.chomp).grid_valid?
+  puts SudokuChecker.new(line.strip).grid_valid? unless line.strip.empty?
 end
