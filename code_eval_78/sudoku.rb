@@ -1,6 +1,5 @@
-#sprawdz kazdy wiersz, kolumne i  kwadrat
-input_one = "4;1,4,2,3,2,3,1,4,4,2,3,1,3,1,4,2"
-input_two = "4;2,1,3,2,3,2,1,4,1,4,2,3,2,3,4,1"
+require '../support/process_file.rb'
+
 class SudokuChecker
   attr_reader :line
 
@@ -9,15 +8,67 @@ class SudokuChecker
   end
 
   def data_prepare
-    @sudoku_size, sudoku_data = line.split(";")
-    @sudoku_data = sudoku_data.split(",")
-    sudoku_grid = []
-    @sudoku_size.to_i.times do |n|
-      sudoku_grid << @sudoku_data.shift(@sudoku_size.to_i)
+    @size, sudoku_data = line.split(";")
+    @size = @size.to_i
+    @square = Math.sqrt(@size).to_i
+    @data = sudoku_data.split(",").map(&:to_i)
+    @fields = []
+    rows
+    columns
+    squares
+    @fields.flatten!(1)
+  end
+  
+  def rows
+    @rows ||= []
+    @size.times do |n|
+      @rows << @data[@size * n, @size]
     end
-    sudoku_grid.to_s
+    @fields << @rows
+  end
+  
+  def columns
+    @columns ||= []
+    @size.times do |n|
+      column = []
+      @size.times do |m|
+        column << @data[@size * m + n]
+      end
+      @columns << column
+    end
+    @fields << @columns
+  end
+  
+  def squares
+    @squares ||= []
+    @square.times do |square_row|
+      @square.times do |square_num|
+        square = []
+        @square.times do |row|
+          square << @data[square_index(square_row, square_num, row), @square]
+        end
+        @squares << square.flatten
+      end
+    end
+    @fields << @squares
+  end
+  
+  def square_index(square_row, square_num, row)
+    square_row * (@size * @square) + square_num * @size + row * @square
+  end
+  
+  def grid_valid?
+    data_prepare
+    @fields.each do |field|
+      unless field.uniq.length == field.length
+        return false
+      end
+    end
+    return true
   end
 
 end
 
-puts SudokuChecker.new(input_one).data_prepare
+ProcessFile.new do |line|
+  puts SudokuChecker.new(line.chomp).grid_valid?
+end
