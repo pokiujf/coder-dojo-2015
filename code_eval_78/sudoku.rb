@@ -10,6 +10,7 @@ class SudokuChecker
   end
 
   def grid_valid?
+    return "False" unless proper_chunks_length?
     return "False" unless @data.length == (@size ** 2)
     fill_fields.each do |field|
       return "False" unless all_numbers?(field)
@@ -58,6 +59,10 @@ class SudokuChecker
       return false if reference_range.delete(value).nil?
     end
     reference_range.empty? ? true : false
+  end
+  
+  def proper_chunks_length?
+    @data.sort.chunk{|v| v }.map(&:last).all?{|v| v.length == @size }
   end
 end
 
