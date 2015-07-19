@@ -1,0 +1,20 @@
+size(file_name) → integer
+
+Returns the size of file_name.
+
+file_name can be an IO object.
+size?(file_name) → Integer or nil
+
+Returns nil if file_name doesn’t exist or has zero size, the size of the file otherwise.
+
+file_name can be an IO object.
+socket?(file_name) → true or false
+
+Returns true if the named file is a socket.
+
+file_name can be an IO object.
+split(file_name) → array click to toggle source
+
+Splits the given string into a directory and a file component and returns them in a two-element array. See also File::dirname and File::basename.
+
+File.split("/home/gumby/.profile")   #=> ["/home/gumby", ".profile"]
