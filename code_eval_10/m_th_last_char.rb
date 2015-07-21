@@ -1,7 +1,4 @@
-require '../support/process_file.rb'
-
-ProcessFile.new do |line|
+File.open(ARGV[0], "r").each_line do |line|
   elements = line.strip.split(' ')
-  num = elements.pop.to_i
-  puts elements[-num]
+  puts elements[-(elements.last.to_i+1)]
 end
