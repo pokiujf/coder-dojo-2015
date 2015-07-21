@@ -8,6 +8,7 @@ class DnaMatcher
     @precission = precission.to_i
     @code = code.split('')
     @matches = []
+    search_matches
   end
   
   def search_matches
@@ -51,7 +52,5 @@ end
 
 
 ProcessFile.new do |line|
-  matcher = DnaMatcher.new(*line.split)
-  matcher.search_matches
-  puts matcher.matches
+  puts DnaMatcher.new(*line.split).matches
 end
