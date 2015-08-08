@@ -1,29 +1,25 @@
-lines = [
-  "2 0 6 3 1 6 3 1 6 3 1",
-  "3 4 8 0 11 9 7 2 5 6 10 1 49 49 49 49",
-  "1 2 3 1 2 3 1 2 3"
-  ]
+require '../support/process_file'
+filename = ARGV[0] || 'sequences.txt'
 
-
-def find_loop(line)
-  max_chars = 50 > (line.length / 2) ? line.length / 2 : 50
-  # puts "max_chars = #{max_chars}"
-  (1..max_chars).each do |num_of_chars|
-    (0..line.length-num_of_chars*2).each do |start_char_pos|
-      search_chars = line[start_char_pos, num_of_chars]
-      # puts "search_chars = #{search_chars}"
-      line.match(/(#{search_chars}){2,}/) {|found|
-        # puts "found #{found}"
-        return search_chars.split('').join(' ')
-      }
-    end
+class LoopDetecter
+  
+  def initialize(sequence)
+    @sequence = sequence
   end
-  nil
+  
+  def to_s
+    detect
+  end
+  
+  private
+  
+  def detect
+    
+  end
+  
 end
 
-File.open(ARGV[0], 'r').each_line do |line|
-  line_matches = []
-
-  loop_in = find_loop(line.gsub(' ', ''))
-  puts loop_in unless loop_in.nil?
+ProcessFile.new(filename) do |line|
+  sequence = line.split(' ').map(&:to_i)
+  puts LoopDetecter.new(sequence)
 end
