@@ -14,6 +14,7 @@ class Roman
   def decimal_to_roman(decimal_number)
     return('') if mapping.empty?
     symbol, divider = mapping.shift
+    puts "#{symbol} #{divider}, #{decimal_number/divider}, #{decimal_number}"
     (symbol * (decimal_number/divider)) + decimal_to_roman(decimal_number % divider)
   end
 
