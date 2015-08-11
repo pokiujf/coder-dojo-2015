@@ -1,9 +1,10 @@
 require '../support/process_file'
 class TextTrimmer
-  attr_reader :line
+  attr_reader :numbers
 
   def initialize line
     @numbers=line
+    puts @numbers
   end
 
   def to_s
