@@ -11,6 +11,7 @@ class LightDistributor
   
   def to_s
     distribute
+    @matrix.map{ |row| row.join }.join
   end
   
   private
@@ -18,37 +19,54 @@ class LightDistributor
   def distribute
     @rays << Ray.new(*get_ray)
     until @rays.empty?
+      # puts "="*40
       move
+      # puts @matrix.map{ |row| row.join }
+      # gets
     end
   end
   
-  def move
-    @rays.delete_if do |ray|
+  def move( rays = @rays )
+    new_rays = []
+    rays.delete_if do |ray|
       next_position = ray.next_position
-      element = get_element_in( *next_position )
       
-      next_position.in_corner? || element.is_pillar?
+      ray.length > 20 ||
+      next_position.out_of_borders? || 
+      next_position.in_corner? || 
+      get_element_in( *next_position ).is_pillar?
     end
     
-    @rays.each do |ray|
-      next_position = ray.next_position
+    rays.each do |ray|
       
-      case get_element_in( *next_position )
-      when is_space?
+      next_position = ray.next_position
+      element = get_element_in( *next_position )
+      case 
+      when element.is_space?
         ray.move
         set_element_in( *ray.position, ray.sign)
-      when is_prism?
-        # create 2 perpendicular rays in proper positions
-        # ray.move
-        # do not set_element_in position
-      when is_wall?
-        ray.reflect
-      when perpendicular_to_ray?
+      when element.is_prism?
+        ray.move
+        new_ray_1 = Ray.new( *ray.position, ray.reflect_sign, ray.direction, ray.length )
+        new_ray_2 = Ray.new( *ray.position, ray.reflect_sign, ray.reflect_direction, ray.length )
+        new_rays << ray
+        @rays << new_ray_1 << new_ray_2
+      when element.is_wall?
+        ray.reflect_position
+        new_rays << ray
+      when element.perpendicular_to_ray?( ray.sign )
         ray.move
         set_element_in( *ray.position, 'X')
-      when is_crossing?
+      when element.is_crossing?
+        ray.move
+      when element.is_ray?
         ray.move
       end
+      # puts ray.inspect
+    end
+    unless new_rays.empty?
+      # puts '-' * 20
+      move( new_rays ) 
     end
   end
   
@@ -70,6 +88,6 @@ class LightDistributor
 end
 
 ProcessFile.new(filename) do |line|
-  puts LineSerializer.new(line.strip).serialize.to_s
-  puts LightDistributor.new(LineSerializer.new(line.strip).serialize)
+  # puts LineSerializer.new(line.strip).serialize.to_s
+  puts LightDistributor.new(LineSerializer.new(line.strip).serialize).to_s
 end

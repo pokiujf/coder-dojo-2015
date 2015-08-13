@@ -36,8 +36,12 @@ end
 class Array
   
   def in_corner?
-    # [[1, 1], [1, 8], [8, 1], [8, 8]].include? self
-    [1, 8].repeated_permutation(2).to_a.include? self
+    # [[0, 0], [0, 9], [9, 0], [9, 9]].include? self
+    [0, 9].repeated_permutation(2).to_a.include? self
+  end
+  
+  def out_of_borders?
+    [-1, 10].include?(self[0]) || [-1, 10].include?(self[1])
   end
 end
 

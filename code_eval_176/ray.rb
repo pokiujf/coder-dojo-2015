@@ -13,31 +13,46 @@ class Ray
       to_left: {row: -1, column: -1}
     }
   }
+  # TURNS = {
+  #   45 => {sign: '/', vector: {row: -1, column: 1}},
+  #   135 => {sign: '\\', vector: {row: 1, column: 1}},
+  #   225 => {sign: '/', vector: {row: 1, column: -1}},
+  #   315 => {sign: '\\', vector: {row: -1, column: -1}}
+  # }
   
-  attr_accessor :row_pos, :column_pos
-  attr_reager :sign, :direction
-  def initialize(row_pos, column_pos, sign, direction = nil)
+  attr_accessor :row_pos, :column_pos, :length
+  attr_reader :sign, :direction
+  def initialize(row_pos, column_pos, sign, direction = nil, length = 1)
     @row_pos = row_pos
     @column_pos = column_pos
     @sign = sign
     @direction = direction
+    @length = length
     initial_vector
   end
   
   def reflect_direction
-    @direction =  case @direction
-                  when :to_right then :to_left
-                  when :to_left then :to_right
-                  when :upwards then :downwards
-                  when :downwards then :upwards
-                  end
+    case @direction
+    when :to_right then :to_left
+    when :to_left then :to_right
+    when :upwards then :downwards
+    when :downwards then :upwards
+    end
+  end
+  
+  def reflect_direction!
+    @direction = reflect_direction
   end
   
   def reflect_sign
-    @sign = case @sign
-            when '/' then '\\'
-            when '\\' then '/'
-            end
+    case @sign
+    when '/' then '\\'
+    when '\\' then '/'
+    end
+  end
+  
+  def reflect_sign!
+    @sign = reflect_sign
   end
   
   def next_position
@@ -51,19 +66,24 @@ class Ray
   def move
     @row_pos += @vector[:row]
     @column_pos +=  @vector[:column]
+    @length += 1
   end
   
-  def reflect
+  def reflect_position
     @row_pos += @vector[:row] if (1..8).include?(@row_pos + @vector[:row]) 
     @column_pos +=  @vector[:column] if (1..8).include?(@column_pos + @vector[:column])
-    reflect_sign
+
+    reflect_sign!
     @direction = nil
     initial_vector
+    @row_pos -= @vector[:row]
+    @column_pos -= @vector[:column]
   end
   
   def initial_vector
     # @vector = [row_vector, column_vector]
-    @vector = SIGN_VECTORS[@sign][initial_direction]
+    initial_direction
+    @vector = SIGN_VECTORS[@sign][@direction]
   end
   
   # Rays can start at the border of map or by the wall
@@ -73,11 +93,11 @@ class Ray
   #
   def initial_direction
     return @direction if @direction
-    case
-    when [0, 1].include?(@column_pos) then :to_right
-    when [8, 9].include?(@column_pos) then :to_left
-    when [0, 1].include?(@row_pos) then :upwards
-    when [8, 9].include?(@row_pos) then :downwards
-    end
+    @direction =  case
+                  when [0, 1].include?(@column_pos) then :to_right
+                  when [8, 9].include?(@column_pos) then :to_left
+                  when [0, 1].include?(@row_pos) then :downwards
+                  when [8, 9].include?(@row_pos) then :upwards
+                  end
   end
 end
