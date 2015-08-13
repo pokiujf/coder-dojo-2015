@@ -1,4 +1,5 @@
 require '../support/process_file'
+require 'pp'
 filename = ARGV[0] || 'data.txt'
 
 class WordCreator
@@ -33,5 +34,7 @@ end
 ProcessFile.new(filename) do |line|
   num, word, letters = line.split(' | ')
   letters = letters.split(' ')
-  puts WordCreator.new(word, letters)
+  wc =  WordCreator.new(word, letters)
+  pp(wc)
+  
 end

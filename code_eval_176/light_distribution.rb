@@ -1,57 +1,38 @@
 require '../support/process_file'
+require 'line_serializer'
+require 'light'
 filename = ARGV[0] || 'data.txt'
 
 class LightDistributor
   def initialize(matrix)
-    @line = line
+    @matrix = matrix
   end
   
   def to_s
-    
+    distribute
   end
   
   private
   
-  def method
-    
-  end
-end
-
-class Light
-  @sign_vectors = {
-    '/' => [[-1, 1], [1, -1]],
-    '\\' => [[-1, -1], [1, 1]]
-  }
-  def initialize(x_pos, y_pos, sign)
-    @x_pos = x_pos
-    @y_pos = y_pos
-    @sign = sign
-    initial_vector
+  def distribute
+    puts get_light
+    Light.new(get_light)
   end
   
-  def initial_vector
-    # @vector = [y_vector, x_vector]
-    @vector = [0, 0]
-    
-    
-    
+  def get_element_in( row, column )
+    @matrix[row][column]
   end
-end
-
-class LineSerializer
-  def initialize(line)
-    @matrix = []
-    (0..10).each do |start|
-      @matrix << line[start*10, 10]
+  
+  def get_light
+    @matrix.each_with_index do |row, row_index|
+      row.each_with_index do |item, column_index|
+        return [row_index, column_index, item] if item == '/' || item == '\\'
+      end
     end
-  end
-  
-  def serialize
-    @matrix.pop
-    @matrix.map{|row| row.split('')}
   end
 end
 
 ProcessFile.new(filename) do |line|
+  puts LineSerializer.new(line.strip).serialize.to_s
   puts LightDistributor.new(LineSerializer.new(line.strip).serialize)
 end
