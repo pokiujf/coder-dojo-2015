@@ -43,6 +43,10 @@ class Array
   def out_of_borders?
     [-1, 10].include?(self[0]) || [-1, 10].include?(self[1])
   end
+  
+  def double_join
+    map(&:join).join
+  end
 end
 
 class LineSerializer

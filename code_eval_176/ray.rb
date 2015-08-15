@@ -13,22 +13,22 @@ class Ray
       to_left: {row: -1, column: -1}
     }
   }
-  # TURNS = {
-  #   45 => {sign: '/', vector: {row: -1, column: 1}},
-  #   135 => {sign: '\\', vector: {row: 1, column: 1}},
-  #   225 => {sign: '/', vector: {row: 1, column: -1}},
-  #   315 => {sign: '\\', vector: {row: -1, column: -1}}
-  # }
   
   attr_accessor :row_pos, :column_pos, :length
   attr_reader :sign, :direction
-  def initialize(row_pos, column_pos, sign, direction = nil, length = 1)
+  def initialize( row_pos, column_pos, sign, direction = nil, length = 1 )
     @row_pos = row_pos
     @column_pos = column_pos
     @sign = sign
     @direction = direction
     @length = length
     initial_vector
+  end
+  
+  def new_splits
+    ray_1 = Ray.new( *position, reflect_sign, direction, length )
+    ray_2 = Ray.new( *position, reflect_sign, reflect_direction, length )
+    return ray_1, ray_2
   end
   
   def reflect_direction

@@ -1,6 +1,8 @@
 require '../support/process_file'
 require_relative 'ray.rb'
 require_relative 'line_serializer.rb'
+$env = 'development'
+
 filename = ARGV[0] || 'data.txt'
 
 class LightDistributor
@@ -11,63 +13,77 @@ class LightDistributor
   
   def to_s
     distribute
-    @matrix.map{ |row| row.join }.join
+    @matrix.double_join
   end
   
   private
   
   def distribute
-    @rays << Ray.new(*get_ray)
+    find_and_create_rays
     until @rays.empty?
-      # puts "="*40
-      move
-      # puts @matrix.map{ |row| row.join }
-      # gets
+      move( @rays )
+      
+      if $env
+        puts @matrix.map{ |row| row.join }
+        gets
+      end
+      
     end
   end
   
-  def move( rays = @rays )
-    new_rays = []
-    rays.delete_if do |ray|
-      next_position = ray.next_position
-      
-      ray.length > 20 ||
-      next_position.out_of_borders? || 
-      next_position.in_corner? || 
-      get_element_in( *next_position ).is_pillar?
-    end
+  def move( rays )
+    @rays_to_move_again = []
+    @rays_new = []
+    @rays_to_delete = []
     
     rays.each do |ray|
-      
       next_position = ray.next_position
-      element = get_element_in( *next_position )
-      case 
-      when element.is_space?
-        ray.move
-        set_element_in( *ray.position, ray.sign)
-      when element.is_prism?
-        ray.move
-        new_ray_1 = Ray.new( *ray.position, ray.reflect_sign, ray.direction, ray.length )
-        new_ray_2 = Ray.new( *ray.position, ray.reflect_sign, ray.reflect_direction, ray.length )
-        new_rays << ray
-        @rays << new_ray_1 << new_ray_2
-      when element.is_wall?
-        ray.reflect_position
-        new_rays << ray
-      when element.perpendicular_to_ray?( ray.sign )
-        ray.move
-        set_element_in( *ray.position, 'X')
-      when element.is_crossing?
-        ray.move
-      when element.is_ray?
-        ray.move
+      if next_position.out_of_borders?
+        @rays_to_delete << ray
+        next
       end
-      # puts ray.inspect
+      
+      next_element = get_element_in( *next_position )
+      step(ray, next_position, next_element)
     end
-    unless new_rays.empty?
-      # puts '-' * 20
-      move( new_rays ) 
+    
+    @rays -= @rays_to_delete
+    @rays += @rays_new
+    
+    puts '-' * 20 if $env && !@rays_to_move_again.empty?
+    move(@rays_to_move_again) unless @rays_to_move_again.empty?
+  end
+    
+  def step(ray, next_position, next_element)
+    if ray_stops?(ray, next_position, next_element)
+      @rays_to_delete << ray
+      return
     end
+      
+    case 
+    when next_element.is_space?
+      ray.move
+      set_element_in( *ray.position, ray.sign )
+    when next_element.perpendicular_to_ray?( ray.sign )
+      ray.move
+      set_element_in( *ray.position, 'X' )
+    when next_element.is_crossing? || next_element.is_ray?
+      ray.move
+    when next_element.is_prism?
+      ray.move
+      ray.length -= 1
+      create_splits_of( ray )
+    when next_element.is_wall?
+      ray.reflect_position
+      @rays_to_move_again << ray
+    end
+    puts ray.inspect if $env
+  end
+  
+  def ray_stops?(ray, next_position, next_element)
+    ray.length > 20 ||
+    next_position.in_corner? ||
+    next_element.is_pillar?
   end
   
   def get_element_in( row, column )
@@ -78,12 +94,21 @@ class LightDistributor
     @matrix[row][column] = sign
   end
   
-  def get_ray
+  def find_and_create_rays
+    @rays = []
     @matrix.each_with_index do |row, row_index|
       row.each_with_index do |item, column_index|
-        return [row_index, column_index, item] if item.is_ray?
+        if item.is_ray?
+          @rays << Ray.new(row_index, column_index, item) 
+        end
       end
     end
+  end
+  
+  def create_splits_of( ray )
+    splits = ray.new_splits
+    @rays_new += splits
+    @rays_to_move_again += splits << ray
   end
 end
 
