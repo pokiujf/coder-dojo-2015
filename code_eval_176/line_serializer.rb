@@ -36,7 +36,6 @@ end
 class Array
   
   def is_corner?
-    # [[0, 0], [0, 9], [9, 0], [9, 9]].include? self
     [0, 9].repeated_permutation(2).to_a.include? self
   end
   

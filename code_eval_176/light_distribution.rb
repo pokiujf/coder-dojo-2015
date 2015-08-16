@@ -24,7 +24,7 @@ class LightDistributor
     until @rays.empty?
       move( @rays )
       
-      if $env
+      if $env == 'show' || $env == 'development'
         puts @matrix.map{ |row| row.join }
         gets
       end
@@ -48,7 +48,7 @@ class LightDistributor
     @rays -= @rays_to_delete
     @rays += @rays_new
     
-    puts '-' * 20 if $env && !@rays_to_move_again.empty?
+    puts '-' * 20 if $env == 'development' && !@rays_to_move_again.empty?
     move(@rays_to_move_again) unless @rays_to_move_again.empty?
   end
     
@@ -69,7 +69,7 @@ class LightDistributor
       ray.reflect_position
       @rays_to_move_again << ray
     end
-    puts ray.inspect if $env
+    puts ray.inspect if $env == 'development'
   end
   
   def ray_stops?(ray, next_position, next_element)
@@ -116,4 +116,3 @@ end
 ProcessFile.new(filename) do |line|
   puts LightDistributor.new(LineSerializer.new(line.strip).serialize).to_s
 end
-# binding.pry
