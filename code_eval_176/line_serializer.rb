@@ -28,14 +28,14 @@ class String
     self == 'X'
   end
   
-  def perpendicular_to_ray?( ray_sign )
+  def is_perpendicular_to?( ray_sign )
     self == '/' && ray_sign == '\\' || self == '\\' && ray_sign == '/'
   end
 end
 
 class Array
   
-  def in_corner?
+  def is_corner?
     # [[0, 0], [0, 9], [9, 0], [9, 9]].include? self
     [0, 9].repeated_permutation(2).to_a.include? self
   end

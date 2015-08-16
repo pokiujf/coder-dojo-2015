@@ -1,4 +1,5 @@
 require '../support/process_file'
+require 'pry'
 require_relative 'ray.rb'
 require_relative 'line_serializer.rb'
 $env = 'development'
@@ -37,14 +38,11 @@ class LightDistributor
     @rays_to_delete = []
     
     rays.each do |ray|
-      next_position = ray.next_position
-      if next_position.out_of_borders?
-        @rays_to_delete << ray
-        next
-      end
-      
+      next_position = ray.next_position.values
+      next if ray_out_of_borders?( ray, next_position )
       next_element = get_element_in( *next_position )
-      step(ray, next_position, next_element)
+      next if ray_stops?(ray, next_position, next_element)
+      step(ray, next_element)
     end
     
     @rays -= @rays_to_delete
@@ -54,25 +52,19 @@ class LightDistributor
     move(@rays_to_move_again) unless @rays_to_move_again.empty?
   end
     
-  def step(ray, next_position, next_element)
-    if ray_stops?(ray, next_position, next_element)
-      @rays_to_delete << ray
-      return
-    end
-      
+  def step(ray, next_element)
     case 
     when next_element.is_space?
       ray.move
       set_element_in( *ray.position, ray.sign )
-    when next_element.perpendicular_to_ray?( ray.sign )
+    when next_element.is_perpendicular_to?( ray.sign )
       ray.move
       set_element_in( *ray.position, 'X' )
     when next_element.is_crossing? || next_element.is_ray?
       ray.move
     when next_element.is_prism?
-      ray.move
-      ray.length -= 1
-      create_splits_of( ray )
+      ray.move( prism: true )
+      create_and_allocate_splits_of( ray )
     when next_element.is_wall?
       ray.reflect_position
       @rays_to_move_again << ray
@@ -81,9 +73,17 @@ class LightDistributor
   end
   
   def ray_stops?(ray, next_position, next_element)
-    ray.length > 20 ||
-    next_position.in_corner? ||
-    next_element.is_pillar?
+    if ray.length > 20 || next_position.is_corner? || next_element.is_pillar?
+      @rays_to_delete << ray
+      return true
+    end
+  end
+  
+  def ray_out_of_borders?(ray, next_position)
+    if next_position.out_of_borders?
+      @rays_to_delete << ray
+      return true
+    end
   end
   
   def get_element_in( row, column )
@@ -99,13 +99,14 @@ class LightDistributor
     @matrix.each_with_index do |row, row_index|
       row.each_with_index do |item, column_index|
         if item.is_ray?
-          @rays << Ray.new(row_index, column_index, item) 
+          rotation = Ray.get_rotation_for( row_index, column_index, item)
+          @rays << Ray.new(row_index, column_index, rotation)
         end
       end
     end
   end
   
-  def create_splits_of( ray )
+  def create_and_allocate_splits_of( ray )
     splits = ray.new_splits
     @rays_new += splits
     @rays_to_move_again += splits << ray
@@ -113,6 +114,6 @@ class LightDistributor
 end
 
 ProcessFile.new(filename) do |line|
-  # puts LineSerializer.new(line.strip).serialize.to_s
   puts LightDistributor.new(LineSerializer.new(line.strip).serialize).to_s
 end
+# binding.pry
