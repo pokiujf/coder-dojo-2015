@@ -24,8 +24,7 @@ class Ray
     }
   }
   
-  attr_accessor :row_pos, :column_pos, :length
-  attr_reader :rotation
+  attr_accessor :row_pos, :column_pos, :length, :rotation
   def initialize( row_pos, column_pos, rotation, length = 1 )
     @row_pos = row_pos
     @column_pos = column_pos
@@ -64,24 +63,24 @@ class Ray
   
   def next_position
     {
-      row: @row_pos + vector[:row],
-      column: @column_pos + vector[:column]
+      row: row_pos + vector[:row],
+      column: column_pos + vector[:column]
     }
   end
   
   def position
-    [@row_pos, @column_pos]
+    [row_pos, column_pos]
   end
   
   def move( opts = {} )
-    @row_pos, @column_pos = next_position.values
-    @length += 1 unless opts[:prism]
+    self.row_pos, self.column_pos = next_position.values
+    self.length += 1 unless opts[:prism]
   end
   
   def reflect_position
-    @row_pos = next_position[:row] if [0, 9].include?(next_position[:row])
-    @column_pos = next_position[:column] if [0, 9].include?(next_position[:column])
-    @rotation = ROTATION_REFLECTIONS[reflection_side][@rotation]
+    self.row_pos = next_position[:row] if [0, 9].include?(next_position[:row])
+    self.column_pos = next_position[:column] if [0, 9].include?(next_position[:column])
+    self.rotation = ROTATION_REFLECTIONS[reflection_side][rotation]
   end
   
   def reflection_side

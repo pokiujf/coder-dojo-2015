@@ -50,13 +50,13 @@ end
 
 class LineSerializer
   
-  def initialize(line)
-    @matrix = []
-    @line = line
+  def self.serialize(line)
+    matrix = line.to_matrix( 10 )
+    matrix.map{|row| row.split('')}
   end
-  
-  def serialize
-    @matrix = @line.to_matrix( 10 )
-    @matrix.map{|row| row.split('')}
+
+  def self.deserialize(matrix)
+    matrix.map(&:join).join
   end
+
 end
