@@ -1,6 +1,6 @@
 class Presenter
 
-  def insert_room(matrix)
+  def self.insert_room(matrix)
     system('clear') if $env == 'show'
     self.draw_room(matrix)
     gets if $env == 'dev'

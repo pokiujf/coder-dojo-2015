@@ -1,4 +1,4 @@
-require '../support/process_file'
+require_relative '../support/process_file'
 require 'pry'
 require_relative 'ray'
 require_relative 'line_serializer'
