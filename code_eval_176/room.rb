@@ -27,4 +27,12 @@ class Room
     matrix[row][column] = sign
   end
 
+  def add_rays(new_rays)
+    self.rays += new_rays.to_a
+  end
+
+  def remove_rays(removed_rays)
+    self.rays -= removed_rays.to_a
+  end
+
 end

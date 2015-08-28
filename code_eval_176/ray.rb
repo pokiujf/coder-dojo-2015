@@ -38,6 +38,10 @@ class Ray
     return rotations
   end
 
+  def to_a
+    [self]
+  end
+
   def split_rotations
     [(rotation - 90) % 360, (rotation + 90) % 360]
   end
@@ -84,4 +88,5 @@ class Ray
         :bottom
     end
   end
+
 end
