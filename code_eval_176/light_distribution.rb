@@ -16,10 +16,10 @@ class LightDistributor
     @room = room
   end
 
-  def distribute
+  def propagate
     until rays.empty?
       propagate_all(rays)
-      Presenter.draw_room(matrix)
+      Presenter.insert_room(matrix)
     end
     matrix
   end
@@ -35,11 +35,9 @@ class LightDistributor
   end
 
   def propagate_all(light_rays)
-
     light_rays.each do |light_ray|
       clear_position_and_element
       self.ray = light_ray
-      # binding.pry
       next if ray_out_of_borders? || ray_stops?
       propagate_ray
     end
@@ -78,7 +76,7 @@ class LightDistributor
         ray.move
       when next_element.is_prism?
         ray.move(prism: true)
-        create_and_allocate_splits
+        create_splits
       when next_element.is_wall?
         ray.reflect_position
         propagate_all(ray.to_a)
@@ -108,16 +106,15 @@ class LightDistributor
     end
   end
 
-  def create_and_allocate_splits
+  def create_splits
     room.add_rays(ray.new_splits)
-    # propagate_all(ray.to_a)
   end
 end
 
 ProcessFile.new(filename) do |line|
   room = Room.new(LineSerializer.serialize(line.strip))
-  response = LightDistributor.new(room).distribute
-  puts LineSerializer.deserialize(response)
+  distributor = LightDistributor.new(room)
+  puts LineSerializer.deserialize(distributor.propagate)
 
   decision = Presenter.put_description
   case decision

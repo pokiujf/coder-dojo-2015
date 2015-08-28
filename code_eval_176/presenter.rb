@@ -1,11 +1,16 @@
 class Presenter
-  def self.draw_room(matrix)
+
+  def insert_room(matrix)
     system('clear') if $env == 'show'
+    self.draw_room(matrix)
+    gets if $env == 'dev'
+    sleep(0.3) if $env == 'show'
+  end
+
+  def self.draw_room(matrix)
     if $env == 'show' || $env == 'dev'
       puts matrix.map { |row| row.join }
     end
-    gets if $env == 'dev'
-    sleep(0.3) if $env == 'show'
   end
 
   def self.put_delimiter
