@@ -3,51 +3,52 @@ require '../support/process_file'
 require_relative 'ray'
 require_relative 'line_serializer'
 require_relative 'presenter'
+require_relative 'room'
 $env = 'show'
 
 filename = ARGV[0] || 'data.txt'
 
 class LightDistributor
 
-  attr_accessor :rays
-  attr_reader :matrix
+  attr_reader :room
 
-  def initialize(matrix)
-    @matrix = matrix
-    @rays = []
+  def initialize(room)
+    @room = room
   end
 
-  def to_s
-    distribute
-    LineSerializer.deserialize(matrix)
+  def distribute
+    until rays.empty?
+      propagate_all(rays)
+      Presenter.draw_room(matrix)
+    end
+    matrix
   end
 
   private
 
-  def distribute
-    find_and_create_rays
-    until @rays.empty?
-      move(@rays)
-      Presenter.draw_room(matrix)
-    end
+  def rays
+    room.rays
   end
 
-  def move(rays)
+  def matrix
+    room.matrix
+  end
+
+  def propagate_all(light_rays)
     setup_holder_arrays
 
-    rays.each do |light_ray|
+    light_rays.each do |light_ray|
       clear_position_and_element
       self.ray = light_ray
-      next if ray_out_of_borders?
-      next if ray_stops?
-      step
+      next if ray_out_of_borders? || ray_stops?
+      propagate_ray
     end
 
-    update_rays
+    add_or_remove_rays
 
     unless @rays_to_move_again.empty?
       Presenter.put_delimiter
-      move(@rays_to_move_again)
+      propagate_all(@rays_to_move_again)
     end
   end
 
@@ -64,12 +65,12 @@ class LightDistributor
   end
 
   def next_element
-    @next_element ||= get_element_in(*next_position)
+    @next_element ||= room.get_element_in(*next_position)
   end
 
-  def update_rays
-    @rays -= @rays_to_delete
-    @rays += @rays_new
+  def add_or_remove_rays
+    room.rays -= @rays_to_delete
+    room.rays += @rays_new
   end
 
   def setup_holder_arrays
@@ -83,14 +84,14 @@ class LightDistributor
     @next_element = nil
   end
 
-  def step
+  def propagate_ray
     case
       when next_element.is_space?
         ray.move
-        set_element_in(*ray.position, ray.sign)
+        set_ray_sign
       when next_element.is_perpendicular_to?(ray.sign)
         ray.move
-        set_element_in(*ray.position, 'X')
+        set_ray_crossing
       when next_element.is_crossing? || next_element.is_ray?
         ray.move
       when next_element.is_prism?
@@ -100,7 +101,15 @@ class LightDistributor
         ray.reflect_position
         @rays_to_move_again << ray
     end
-    Presenter.inspect_ray(@ray)
+    Presenter.inspect_ray(ray)
+  end
+
+  def set_ray_crossing
+    room.set_element_in(*ray.position, 'X')
+  end
+
+  def set_ray_sign
+    room.set_element_in(*ray.position, ray.sign)
   end
 
   def ray_stops?
@@ -117,25 +126,6 @@ class LightDistributor
     end
   end
 
-  def get_element_in(row, column)
-    @matrix[row][column]
-  end
-
-  def set_element_in(row, column, sign)
-    @matrix[row][column] = sign
-  end
-
-  def find_and_create_rays
-    matrix.each_with_index do |row, row_index|
-      row.each_with_index do |item, column_index|
-        if item.is_ray?
-          rotation = Ray.get_rotation_for(row_index, column_index, item)
-          rays << Ray.new(row_index, column_index, rotation)
-        end
-      end
-    end
-  end
-
   def create_and_allocate_splits
     splits = ray.new_splits
     @rays_new += splits
@@ -144,5 +134,17 @@ class LightDistributor
 end
 
 ProcessFile.new(filename) do |line|
-  puts LightDistributor.new(LineSerializer.serialize(line.strip)).to_s
+  room = Room.new(LineSerializer.serialize(line.strip))
+  response = LightDistributor.new(room).distribute
+  puts LineSerializer.deserialize(response)
+  puts "To cała ścieżka rozchodzenia się światła w tym pokoju.\n\n-\tJeśli chcesz obejrzeć ponownie wpisz: redo\n\t\ti potwierdź ENTER\n-\tAby zakończyć wpisz: exit\n\t\ti wciśnij ENTER\n-\tAby przejśc do następnego pokoju: wciśnij ENTER."
+  decision = gets.chomp
+  system('clear')
+  case decision
+    when 'redo' then
+      redo
+    when 'exit'
+      puts "Zamykam"
+      break
+  end
 end
