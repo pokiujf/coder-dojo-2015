@@ -1,31 +1,29 @@
 class String
-  
+
+  ELEMENT_CODES = {
+      'o' => :pillar,
+      ' ' => :space,
+      '*' => :prism,
+      '#' => :wall,
+      'X' => :crossing,
+      '\\' => :ray,
+      '/' => :ray
+  }
+
   def to_matrix( row_length = 1 )
     scan(/.{#{row_length}}/).to_a
   end
-  
+
+  def code
+    ELEMENT_CODES[self]
+  end
+
   def is_ray?
-    self == '/' || self == '\\'
+    ELEMENT_CODES[self] == :ray
   end
-  
+
   def is_pillar?
-    self == 'o'
-  end
-  
-  def is_space?
-    self == ' '
-  end
-  
-  def is_prism?
-    self == '*'
-  end
-  
-  def is_wall?
-    self == '#'
-  end
-  
-  def is_crossing?
-    self == 'X'
+    ELEMENT_CODES[self] == :pillar
   end
   
   def is_perpendicular_to?( ray_sign )

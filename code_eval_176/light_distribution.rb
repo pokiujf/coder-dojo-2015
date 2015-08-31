@@ -4,7 +4,7 @@ require_relative 'ray'
 require_relative 'line_serializer'
 require_relative 'presenter'
 require_relative 'room'
-$env = 'dev'
+$env = 'show'
 
 filename = ARGV[0] || 'data.txt'
 
@@ -30,33 +30,17 @@ class LightDistributor
   def propagate_all(light_rays)
     light_rays.each do |light_ray|
       setup_ray(light_ray)
-      next unless validate_ray
-      propagate_ray
+      next if ray_finished?
+      perform_action_for(next_element.code)
+      Presenter.inspect_ray(ray)
     end
   end
 
-  def propagate_ray
-    case
-      when next_element.is_space? then
-        process_action(:space)
-      when next_element.is_perpendicular_to?(sign) then
-        process_action(:perpendicular)
-      when next_element.is_crossing? then
-        process_action(:crossing)
-      when next_element.is_ray? then
-        process_action(:parallel)
-      when next_element.is_prism? then
-        process_action(:prism)
-      when next_element.is_wall? then
-        process_action(:wall)
-        propagate_all(ray.to_a)
-    end
-    Presenter.inspect_ray(ray)
-  end
-
-  def process_action(action, opts = {})
-    ray.process_action(action)
-    room.process_action(action, ray)
+  def perform_action_for(code, opts = {})
+    code = :perpendicular if next_element.is_perpendicular_to?(sign)
+    ray.process_action(code)
+    room.process_action(code, ray)
+    propagate_all(ray.to_a) if code == :wall
   end
 
   def rays
@@ -88,21 +72,16 @@ class LightDistributor
     @ray = light_ray
   end
 
-  def validate_ray
-    if ray_out_of_borders? || ray_stops?
+  def ray_finished?
+    if ray_stops?
       room.process_action(:removal, ray)
-      false
-    else
       true
     end
   end
 
   def ray_stops?
-    ray.length > 20 || next_position.is_corner? || next_element.is_pillar?
-  end
-
-  def ray_out_of_borders?
-    next_position.out_of_borders?
+    ray.length > 20 || next_position.out_of_borders? ||
+        next_position.is_corner? || next_element.is_pillar?
   end
 end
 
