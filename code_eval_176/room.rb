@@ -28,12 +28,16 @@ class Room
         set_element_in(*ray.position, 'X')
       when :prism
         add_rays(ray.new_splits)
+      when :removal
+        remove_rays(ray)
     end
   end
 
   def get_element_in(row, column)
     matrix[row][column]
   end
+
+  private
 
   def set_element_in(row, column, sign)
     matrix[row][column] = sign

@@ -11,6 +11,7 @@ filename = ARGV[0] || 'data.txt'
 class LightDistributor
 
   attr_reader :room
+  attr_accessor :ray
 
   def initialize(room)
     @room = room
@@ -30,7 +31,10 @@ class LightDistributor
     light_rays.each do |light_ray|
       clear_position_and_element
       self.ray = light_ray
-      next if ray_out_of_borders? || ray_stops?
+      if ray_out_of_borders? || ray_stops?
+        room.process_action(:removal, ray)
+        next
+      end
       propagate_ray
     end
   end
@@ -39,31 +43,21 @@ class LightDistributor
     case
       when next_element.is_space? then
         process_action(:space)
-      # move
-      # set_ray_sign
       when next_element.is_perpendicular_to?(sign) then
         process_action(:perpendicular)
-      # move
-      # set_crossing
       when next_element.is_crossing? then
         process_action(:crossing)
-      # move
       when next_element.is_ray? then
         process_action(:parallel)
-      # move
       when next_element.is_prism? then
         process_action(:prism)
-      # move(prism: true)
-      # create_splits
       when next_element.is_wall? then
         process_action(:wall)
-      # reflect
-      # propagate_all(ray.to_a)
     end
     Presenter.inspect_ray(ray)
   end
 
-  def process_action(action)
+  def process_action(action, opts = {})
     ray.process_action(action)
     room.process_action(action, ray)
   end
@@ -72,29 +66,17 @@ class LightDistributor
     room.rays
   end
 
+  def remove_rays(ray)
+    room.remove_rays(ray)
+  end
+
   def matrix
     room.matrix
   end
 
-  def ray
-    @ray
-  end
-
-  def ray=(light_ray)
-    @ray = light_ray
-  end
-
-  # def move(args={})
-  #   ray.move(args)
-  # end
-
   def sign
     ray.sign
   end
-
-  # def reflect
-  #   ray.reflect_position
-  # end
 
   def next_position
     @next_position ||= ray.next_position.values
@@ -105,36 +87,16 @@ class LightDistributor
   end
 
   def clear_position_and_element
-    @next_position = nil
-    @next_element = nil
+    @next_position = @next_element = nil
   end
 
-
-  # def set_crossing
-  #   room.set_element_in(*ray.position, 'X')
-  # end
-  #
-  # def set_ray_sign
-  #   room.set_element_in(*ray.position, ray.sign)
-  # end
-
   def ray_stops?
-    if ray.length > 20 || next_position.is_corner? || next_element.is_pillar?
-      room.remove_rays(ray)
-      return true
-    end
+    ray.length > 20 || next_position.is_corner? || next_element.is_pillar?
   end
 
   def ray_out_of_borders?
-    if next_position.out_of_borders?
-      room.remove_rays(ray)
-      return true
-    end
+    next_position.out_of_borders?
   end
-
-  # def create_splits
-  #   room.add_rays(ray.new_splits)
-  # end
 end
 
 ProcessFile.new(filename) do |line|
@@ -144,7 +106,7 @@ ProcessFile.new(filename) do |line|
 
   decision = Presenter.put_description
   case decision
-    when 'redo' then
+    when 'redo'
       redo
     when 'exit'
       puts "Zamykam"

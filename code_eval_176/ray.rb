@@ -53,12 +53,14 @@ class Ray
     [self]
   end
 
-  def split_rotations
-    [(rotation - 90) % 360, (rotation + 90) % 360]
-  end
-
   def sign
     ROTATIONS[rotation][:sign]
+  end
+
+  private
+
+  def split_rotations
+    [(rotation - 90) % 360, (rotation + 90) % 360]
   end
 
   def vector
