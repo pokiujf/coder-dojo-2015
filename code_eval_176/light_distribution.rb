@@ -26,14 +26,6 @@ class LightDistributor
 
   private
 
-  def rays
-    room.rays
-  end
-
-  def matrix
-    room.matrix
-  end
-
   def propagate_all(light_rays)
     light_rays.each do |light_ray|
       clear_position_and_element
@@ -43,12 +35,48 @@ class LightDistributor
     end
   end
 
+  def propagate_ray
+    case
+      when next_element.is_space?
+        move
+        set_ray_sign
+      when next_element.is_perpendicular_to?(ray.sign)
+        move
+        set_crossing
+      when next_element.is_crossing? || next_element.is_ray?
+        move
+      when next_element.is_prism?
+        move(prism: true)
+        create_splits
+      when next_element.is_wall?
+        reflect
+        propagate_all(ray.to_a)
+    end
+    Presenter.inspect_ray(ray)
+  end
+
+  def rays
+    room.rays
+  end
+
+  def matrix
+    room.matrix
+  end
+
   def ray
     @ray
   end
 
   def ray=(light_ray)
     @ray = light_ray
+  end
+
+  def move(args={})
+    ray.move(args)
+  end
+
+  def reflect
+    ray.reflect_position
   end
 
   def next_position
@@ -64,25 +92,6 @@ class LightDistributor
     @next_element = nil
   end
 
-  def propagate_ray
-    case
-      when next_element.is_space?
-        ray.move
-        set_ray_sign
-      when next_element.is_perpendicular_to?(ray.sign)
-        ray.move
-        set_crossing
-      when next_element.is_crossing? || next_element.is_ray?
-        ray.move
-      when next_element.is_prism?
-        ray.move(prism: true)
-        create_splits
-      when next_element.is_wall?
-        ray.reflect_position
-        propagate_all(ray.to_a)
-    end
-    Presenter.inspect_ray(ray)
-  end
 
   def set_crossing
     room.set_element_in(*ray.position, 'X')
