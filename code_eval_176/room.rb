@@ -23,9 +23,9 @@ class Room
   def process_action(action, ray)
     case action
       when :space
-        set_element_in(*ray.position, ray.sign)
+        set_element(ray)
       when :perpendicular
-        set_element_in(*ray.position, 'X')
+        set_element(ray, 'X')
       when :prism
         add_rays(ray.new_splits)
       when :removal
@@ -39,16 +39,17 @@ class Room
 
   private
 
-  def set_element_in(row, column, sign)
+  def set_element(ray, sign=nil)
+    row, column = ray.position
+    sign = sign || ray.sign
     matrix[row][column] = sign
   end
 
   def add_rays(new_rays)
-    self.rays += new_rays.to_a
+    @rays += new_rays.to_a
   end
 
   def remove_rays(removed_rays)
-    self.rays -= removed_rays.to_a
+    @rays -= removed_rays.to_a
   end
-
 end

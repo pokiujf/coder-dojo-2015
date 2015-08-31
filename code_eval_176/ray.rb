@@ -57,16 +57,6 @@ class Ray
     ROTATIONS[rotation][:sign]
   end
 
-  private
-
-  def split_rotations
-    [(rotation - 90) % 360, (rotation + 90) % 360]
-  end
-
-  def vector
-    ROTATIONS[rotation][:vector]
-  end
-
   def next_position
     {
         row: row_pos + vector[:row],
@@ -78,15 +68,25 @@ class Ray
     [row_pos, column_pos]
   end
 
+  private
+
+  def split_rotations
+    [(rotation - 90) % 360, (rotation + 90) % 360]
+  end
+
+  def vector
+    ROTATIONS[rotation][:vector]
+  end
+
   def move(opts={})
-    self.row_pos, self.column_pos = next_position.values
-    self.length += 1 unless opts[:prism]
+    @row_pos, @column_pos = next_position.values
+    @length += 1 unless opts[:prism]
   end
 
   def reflect_position
-    self.row_pos = next_position[:row] if [0, 9].include?(next_position[:row])
-    self.column_pos = next_position[:column] if [0, 9].include?(next_position[:column])
-    self.rotation = ROTATION_REFLECTIONS[reflection_side][rotation]
+    @row_pos = next_position[:row] if [0, 9].include?(next_position[:row])
+    @column_pos = next_position[:column] if [0, 9].include?(next_position[:column])
+    @rotation = ROTATION_REFLECTIONS[reflection_side][rotation]
   end
 
   def reflection_side
@@ -101,5 +101,4 @@ class Ray
         :bottom
     end
   end
-
 end

@@ -4,7 +4,7 @@ require_relative 'ray'
 require_relative 'line_serializer'
 require_relative 'presenter'
 require_relative 'room'
-$env = 'show'
+$env = 'dev'
 
 filename = ARGV[0] || 'data.txt'
 
@@ -49,6 +49,7 @@ class LightDistributor
         process_action(:prism)
       when next_element.is_wall? then
         process_action(:wall)
+        propagate_all(ray.to_a)
     end
     Presenter.inspect_ray(ray)
   end
@@ -90,6 +91,8 @@ class LightDistributor
   def validate_ray
     if ray_out_of_borders? || ray_stops?
       room.process_action(:removal, ray)
+      false
+    else
       true
     end
   end
