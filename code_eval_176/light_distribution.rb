@@ -29,12 +29,8 @@ class LightDistributor
 
   def propagate_all(light_rays)
     light_rays.each do |light_ray|
-      clear_position_and_element
-      self.ray = light_ray
-      if ray_out_of_borders? || ray_stops?
-        room.process_action(:removal, ray)
-        next
-      end
+      setup_ray(light_ray)
+      next unless validate_ray
       propagate_ray
     end
   end
@@ -86,8 +82,16 @@ class LightDistributor
     @next_element ||= room.get_element_in(*next_position)
   end
 
-  def clear_position_and_element
+  def setup_ray(light_ray)
     @next_position = @next_element = nil
+    @ray = light_ray
+  end
+
+  def validate_ray
+    if ray_out_of_borders? || ray_stops?
+      room.process_action(:removal, ray)
+      true
+    end
   end
 
   def ray_stops?
