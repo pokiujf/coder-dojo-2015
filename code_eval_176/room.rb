@@ -2,6 +2,7 @@ class Room
 
   attr_reader :matrix
   attr_accessor :rays
+
   def initialize(matrix)
     @matrix = matrix
     @rays = []
@@ -16,6 +17,17 @@ class Room
           rays << Ray.new(row_index, column_index, rotation)
         end
       end
+    end
+  end
+
+  def process_action(action, ray)
+    case action
+      when :space
+        set_element_in(*ray.position, ray.sign)
+      when :perpendicular
+        set_element_in(*ray.position, 'X')
+      when :prism
+        add_rays(ray.new_splits)
     end
   end
 

@@ -31,11 +31,22 @@ class Ray
     end
   end
 
+  def process_action(action)
+    case action
+      when :prism
+        move(prism: true)
+      when :wall
+        reflect_position
+      else
+        move
+    end
+  end
+
   def new_splits
-    rotations = split_rotations.map do |rotation|
+    splits = split_rotations.map do |rotation|
       Ray.new(*position, rotation, length)
     end
-    return rotations
+    return splits
   end
 
   def to_a
@@ -65,7 +76,7 @@ class Ray
     [row_pos, column_pos]
   end
 
-  def move(opts = {})
+  def move(opts={})
     self.row_pos, self.column_pos = next_position.values
     self.length += 1 unless opts[:prism]
   end
