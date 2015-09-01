@@ -4,7 +4,7 @@ require_relative 'ray'
 require_relative 'line_serializer'
 require_relative 'presenter'
 require_relative 'room'
-$env = 'show'
+$env ||= 'test'
 
 filename = ARGV[0] || 'data.txt'
 
@@ -88,7 +88,8 @@ end
 ProcessFile.new(filename) do |line|
   room = Room.new(LineSerializer.serialize(line.strip))
   distributor = LightDistributor.new(room)
-  puts LineSerializer.deserialize(distributor.propagate)
+  deserialized_room = LineSerializer.deserialize(distributor.propagate)
+  puts deserialized_room if $env == 'prod'
 
   decision = Presenter.put_description
   case decision

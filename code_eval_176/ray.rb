@@ -5,12 +5,15 @@ class Ray
       225 => {sign: '/', vector: {row: 1, column: -1}},
       315 => {sign: '\\', vector: {row: -1, column: -1}}
   }
+  ROTATIONS.default = {sign: '|', vector: {row: 0, column: 0}}
+
   ROTATION_REFLECTIONS = {
       top: {315 => 225, 45 => 135},
       bottom: {225 => 315, 135 => 45},
       right: {45 => 315, 135 => 225},
       left: {315 => 45, 225 => 135}
   }
+  ROTATION_REFLECTIONS.default = {45 => 0, 135 => 0, 225 => 0, 315 => 0}
 
   attr_accessor :row_pos, :column_pos, :length, :rotation
 
@@ -54,7 +57,7 @@ class Ray
   end
 
   def sign
-    ROTATIONS[rotation][:sign]
+    fetch_rotation[:sign]
   end
 
   def next_position
@@ -74,8 +77,12 @@ class Ray
     [(rotation - 90) % 360, (rotation + 90) % 360]
   end
 
+  def fetch_rotation
+    ROTATIONS[rotation]
+  end
+
   def vector
-    ROTATIONS[rotation][:vector]
+    fetch_rotation[:vector]
   end
 
   def move(opts={})
