@@ -4,9 +4,6 @@ require_relative 'ray'
 require_relative 'line_serializer'
 require_relative 'presenter'
 require_relative 'room'
-$env ||= 'test'
-
-filename = ARGV[0] || 'data.txt'
 
 class LightDistributor
 
@@ -85,18 +82,45 @@ class LightDistributor
   end
 end
 
-ProcessFile.new(filename) do |line|
-  room = Room.new(LineSerializer.serialize(line.strip))
-  distributor = LightDistributor.new(room)
-  deserialized_room = LineSerializer.deserialize(distributor.propagate)
-  puts deserialized_room if $env == 'prod'
+class Runner
+  def self.run
+    filename = ARGV[0] || 'data.txt'
+    # Presenter.env ||= 'show'
+    ProcessFile.new(filename) do |line|
+      create_room(line)
+      distribute_light
+      deserialize_response
+      puts @deserialized_room if $env == 'prod'
 
-  decision = Presenter.put_description
-  case decision
-    when 'redo'
-      redo
-    when 'exit'
-      puts "Zamykam"
-      break
+      case Presenter.put_description
+        when 'redo'
+          redo
+        when 'exit'
+          puts "Zamykam"
+          break
+      end
+    end
+  end
+
+  def self.create_room(line)
+    @room = Room.new(serialize_line(line))
+  end
+
+  def self.serialize_line(line)
+    LineSerializer.serialize(line.strip)
+  end
+
+  def self.distribute_light
+    @response = LightDistributor.new(@room).propagate
+  end
+
+  def self.deserialize_response
+    @deserialized_room = LineSerializer.deserialize(@response)
   end
 end
+
+Runner.run
+
+
+
+

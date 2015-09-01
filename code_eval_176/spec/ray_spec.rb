@@ -3,6 +3,9 @@ require 'spec_helper'
 describe Ray do
 
   subject(:ray) { Ray.new(3, 0, 45) }
+  before(:all) do
+    Presenter.env = 'test'
+  end
 
   it { expect(subject).to be_instance_of Ray }
   it { expect(subject.row_pos).to eql(3) }
@@ -66,27 +69,30 @@ describe Ray do
     end
   end
   context '#sign' do
-    context 'for rotation 45 & 225' do
-      let(:ray_45) { Ray.new(1, 1, 45) }
-      let(:ray_225) { Ray.new(1, 1, 225) }
-      it { expect(ray_45.sign).to eql('/') }
-      it { expect(ray_225.sign).to eql('/') }
+    it 'should be \'/\' for rotation 45' do
+      ray.rotation = 45
+      expect(ray.sign).to eql('/')
     end
-    context 'for rotation 135 & 315' do
-      let(:ray_135) { Ray.new(1, 1, 135) }
-      let(:ray_315) { Ray.new(1, 1, 315) }
-      it { expect(ray_135.sign).to eql('\\') }
-      it { expect(ray_315.sign).to eql('\\') }
+    it 'should be \'/\' for rotation 225' do
+      ray.rotation = 225
+      expect(ray.sign).to eql('/')
+    end
+    it 'should be \'\\\' for rotation 135' do
+      ray.rotation = 135
+      expect(ray.sign).to eql('\\')
+    end
+    it 'should be \'\\\' for rotation 315' do
+      ray.rotation = 315
+      expect(ray.sign).to eql('\\')
     end
   end
   it { expect(subject.to_a).to be_instance_of(Array) }
   it '#next_coordinates should be current_position + vector value' do
-
-    next_coordinates = {row: subject.row_pos + subject.send('vector')[:row],
-                        column: subject.column_pos + subject.send('vector')[:column]}
+    next_coordinates = {row: subject.row_pos + described_class::ROTATIONS[subject.rotation][:vector][:row],
+                        column: subject.column_pos + described_class::ROTATIONS[subject.rotation][:vector][:column]}
     expect(subject.next_position).to eql(next_coordinates)
   end
-  it { expect(subject.position).to eql([subject.row_pos, subject.column_pos])}
+  it { expect(subject.position).to eql([subject.row_pos, subject.column_pos]) }
 
   context 'class constants exception handling' do
     it 'ROTATIONS should have default' do
