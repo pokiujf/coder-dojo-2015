@@ -10,8 +10,8 @@ class String
       '/' => :ray
   }
 
-  def to_matrix( row_length = 1 )
-    scan(/.{#{row_length}}/).to_a
+  def to_matrix
+    scan(/.{10}/).to_a
   end
 
   def code
@@ -44,17 +44,21 @@ class Array
   def double_join
     map(&:join).join
   end
+
+  def split_substring
+    map{|sub_str| sub_str.split('')}
+  end
 end
 
 class LineSerializer
   
   def self.serialize(line)
-    matrix = line.to_matrix( 10 )
-    matrix.map{|row| row.split('')}
+    matrix = line.to_matrix
+    matrix.split_substring
   end
 
   def self.deserialize(matrix)
-    matrix.map(&:join).join
+    matrix.double_join
   end
 
 end
