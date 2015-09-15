@@ -23,9 +23,9 @@ class DataParser
     houses.map! do |house_data|
       name, *coords = house_data.split
       coords.map! do |point|
-        Struct::Coordinate.new(*point.to_coord)
+        point.to_coord!
       end
-      Struct::HouseData.new(name, coords)
+      {name: name, coords: coords}
     end
   end
 
@@ -44,6 +44,7 @@ class DataParser
     end
     collector.each do |mac, entries|
       spot = Struct::HotSpot.new(mac, [])
+      spot = {mac: mac, entries: []}
       entries.each do |entry|
         coord = Struct::Coordinate.new(*entry[1])
         spot.entries << Struct::RadarEntry.new(entry[0], coord)
@@ -60,5 +61,5 @@ class DataParser
   end
 end
 
-# data_parser = DataParser.new(File.open('data.txt').read).parse
-# binding.pry
+data_parser = DataParser.new(File.open('data.txt').read).parse
+binding.pry
