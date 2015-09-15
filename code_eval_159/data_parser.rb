@@ -1,14 +1,17 @@
 require 'pry'
+require_relative 'monkey'
 class DataParser
-  attr_reader :houses, :logs
+  attr_reader :houses, :spots
 
   def initialize(data)
     @houses, @logs = data.strip.split("\n\n")
+    @spots = []
   end
 
   def parse
     @houses = @houses.split("\n")
     @logs = @logs.split("\n")
+    setup_structures
     parse_houses
     parse_logs
     self
@@ -17,40 +20,45 @@ class DataParser
   private
 
   def parse_houses
-    struct_for_house
     houses.map! do |house_data|
       name, *coords = house_data.split
       coords.map! do |point|
-        Struct::Coordinate.new(*point.to_coord!)
+        Struct::Coordinate.new(*point.to_coord)
       end
       Struct::HouseData.new(name, coords)
     end
   end
 
   def parse_logs
-    struct_for_log
-    logs.map! do |log_data|
+    collector = {}
+    @logs.each do |log_data|
       coord, *entries = log_data.split
-      coord = coord.to_coord!
-      entries.map! do |entry|
-        entry = entry.split(";")
-        entry[1] = entry[1].to_f
-        Struct::Entry.new(*entry)
+      next if entries.empty?
+      entries.each do |entry|
+        mac, azimuth = entry.split(';')
+        azimuth = azimuth.to_f
+        coordinate = coord.split(';').map(&:to_f)
+        collector[mac] = [] if collector[mac] == nil
+        collector[mac] << [azimuth, coordinate]
       end
-      Struct::LogData.new(coord, entries)
+    end
+    collector.each do |mac, entries|
+      spot = Struct::HotSpot.new(mac, [])
+      entries.each do |entry|
+        coord = Struct::Coordinate.new(*entry[1])
+        spot.entries << Struct::RadarEntry.new(entry[0], coord)
+      end
+      @spots << spot
     end
   end
 
-  def struct_for_house
+  def setup_structures
     Struct.new('HouseData', :name, :coords)
     Struct.new('Coordinate', :x_pos, :y_pos)
-  end
-
-  def struct_for_log
-    Struct.new('LogData', :point, :entries)
-    Struct.new('Entry', :mac, :azimuth)
+    Struct.new('RadarEntry', :azimuth, :coord)
+    Struct.new('HotSpot', :mac, :entries)
   end
 end
 
-
-binding.pry
+# data_parser = DataParser.new(File.open('data.txt').read).parse
+# binding.pry
