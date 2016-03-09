@@ -2,6 +2,7 @@ class Presenter
 
   class << self
     attr_accessor :env
+    @env = 'show'
   end
 
   def self.insert_room(matrix)

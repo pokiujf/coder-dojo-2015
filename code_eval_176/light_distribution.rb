@@ -12,6 +12,7 @@ class LightDistributor
 
   def initialize(room)
     @room = room
+    Presenter.env = 'show'
   end
 
   def propagate
